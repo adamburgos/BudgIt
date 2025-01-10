@@ -9,14 +9,21 @@ def add_expense(category, amount, description):
     conn = sqlite3.connect("budgit.db")
     cursor = conn.cursor()
 
-    cursor.execute("""
-    INSERT INTO expenses (id, category, amount, date, description)
-    VALUES (?, ?, ?, ?, ?)
-    """, (new_expense.id, new_expense.category, new_expense.amount, new_expense.date.isoformat(), new_expense.description))
+    cursor.execute("SELECT id FROM expenses WHERE id = ?", (new_expense.id,))
+    if cursor.fetchone():
+        print(f"Expense with ID {new_expense.id} already exists. Skipping insertion.")
+        conn.close()
+        return new_expense
+
+    cursor.execute(""" INSERT INTO expenses 
+    (id, category, amount, date, description) 
+    VALUES (?, ?, ?, ?, ?) """, 
+    (new_expense.id, new_expense.category, new_expense.amount, new_expense.date.isoformat(), new_expense.description))
 
     conn.commit()
     conn.close()
 
+    print(f"Expense added: {new_expense}")
     return new_expense
 
 def get_expenses():
